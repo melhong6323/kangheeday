@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>KangHeeDay 추첨</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #FDFBF7;
+      --surface:      rgba(255,255,255,0.60);
+      --border:       rgba(0,0,0,0.08);
+      --text:         #4A3F35;
+      --text-muted:   #7A6F65;
+      --text-dim:     #B5AAA2;
+      --accent:       #FF8C78;
+      --shadow-clay:  6px 6px 14px rgba(0,0,0,0.10), -4px -4px 10px rgba(255,255,255,0.80);
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--bg);
+      background-image: url("bg_props.webp");
+      background-size: 700px auto;
+      background-position: center;
+      background-repeat: no-repeat;
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 80px 48px 48px;
+    }
+
+    /* ─── 2-Column Layout ─── */
+    .page {
+      width: 100%;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 36px;
+      align-items: start;
+    }
+
+    .rules-col {
+      position: sticky;
+      top: 48px;
+    }
+
+    .main-col {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* ─── Header ─── */
+    .header { text-align: left; }
+
+    .title {
+      font-size: 3.2rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, #FF8C78 0%, #F0C84A 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      font-weight: 400;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── Poster ─── */
+    .poster-wrap {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: 20px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #FFE8E3 0%, #FFF9E8 50%, #E3F8F2 100%);
+      border: 1px solid rgba(255,255,255,0.70);
+      border-top: 1px solid rgba(255,255,255,0.90);
+      box-shadow: var(--shadow-clay);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .poster-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .poster-fallback {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    /* ─── Rules Card ─── */
+    .rules-card {
+      width: 100%;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-top: 1px solid rgba(255,255,255,0.80);
+      border-radius: 20px;
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+      box-shadow: var(--shadow-clay);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .rule-group { display: flex; flex-direction: column; gap: 10px; }
+
+    .rule-group-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .rule-items { display: flex; flex-direction: column; gap: 8px; }
+
+    .rule-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.93rem;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    .rule-item::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 9px;
+    }
+
+    /* ─── CTA ─── */
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 68px;
+      background: linear-gradient(135deg, #FF8C78 0%, #FFB5A7 100%);
+      color: #fff;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
+      border-top: 1px solid rgba(255,255,255,0.60);
+      box-shadow: var(--shadow-clay);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      align-self: flex-start;
+    }
+
+    .cta-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 8px 8px 20px rgba(0,0,0,0.12), -5px -5px 14px rgba(255,255,255,0.85), 0 8px 20px rgba(255,140,120,0.30);
+    }
+
+    /* ─── Floating Nav ─── */
+    .float-nav {
+      position: fixed;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-right: none;
+      border-top: 1px solid rgba(255,255,255,0.80);
+      border-radius: 12px 0 0 12px;
+      padding: 10px 6px;
+      box-shadow: var(--shadow-clay);
+      z-index: 100;
+    }
+    .float-nav-item {
+      display: block;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-family: inherit;
+      transition: background 0.15s;
+      cursor: default;
+    }
+    .float-nav-item.current {
+      background: rgba(255,140,120,0.15);
+      color: var(--accent);
+    }
+    a.float-nav-item {
+      cursor: pointer;
+    }
+    a.float-nav-item:hover { background: rgba(255,140,120,0.10); }
+  </style>
+</head>
+<body>
+  <main class="page">
+
+    <!-- ── 좌측: 규칙 카드 ── -->
+    <aside class="rules-col">
+      <div class="rules-card">
+        <div class="rule-group">
+          <p class="rule-group-title">참여 조건</p>
+          <div class="rule-items">
+            <p class="rule-item"><strong>앙희님이 신청한 시청자를 알아야 합니다.</strong></p>
+            <p class="rule-item">시청자 참여 유동은 다음기회에</p>
+            <p class="rule-item">찐텐은 앙희님만, <b>찐텐 절대 금지!</b> </p>
+            <p class="rule-item">중복 입력은 1회로 처리됩니다.</p>
+          </div>
+        </div>
+        <div class="rule-group">
+          <p class="rule-group-title">참여 안내</p>
+          <div class="rule-items">
+            <p class="rule-item">앙희데이 게시글에 댓글로 참여 부탁드립니다.</p>
+            <p class="rule-item">방송 채팅으로 참여할 경우, 방송 환경에 의해 반영이 되지 않을 수 있습니다. 기다려 주세요.</p>
+          </div>
+        </div>
+        <div class="rule-group">
+          <p class="rule-group-title">주의사항</p>
+          <div class="rule-items">
+            <p class="rule-item">추첨결과는 번복이 될 수도, 안 될 수도 있습니다.</p>
+            <p class="rule-item">앙희님의 판단에 따라 일부 참가자가 제외될 수 있습니다.</p>
+            <p class="rule-item">매판 로테이션으로 진행이 될 착석해 주셔야 합니다.</p>
+            <p class="rule-item"><strong>본인 차례에 없을 때 다른 분에게 기회가 넘어갈 수 있습니다.</strong></p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── 우측: 타이틀 + 포스터 + CTA ── -->
+    <div class="main-col">
+      <div class="header">
+        <h1 class="title">앙희데이 - 배틀그라운드</h1>
+        <p class="subtitle">04.10 금요일</p>
+      </div>
+
+      <div class="poster-wrap">
+        <img
+          src="poster.webp"
+          alt="이벤트 포스터"
+          onerror="this.style.display='none'"
+        >
+      </div>
+
+      <a href="lots.html" class="cta-btn">
+        추첨 시작하기 →
+      </a>
+    </div>
+
+  </main>
+
+  <nav class="float-nav">
+    <span class="float-nav-item current">메인</span>
+    <a href="lots.html" class="float-nav-item">추첨</a>
+  </nav>
+</body>
+</html>

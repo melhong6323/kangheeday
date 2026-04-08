@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>KangHeeDay 추첨 대시보드</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+  <style>
+    /* ══════════════════════════════════════
+       RESET & TOKENS
+    ══════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:             #FDFBF7;
+      --surface:        rgba(255,255,255,0.60);
+      --border:         rgba(0,0,0,0.08);
+      --border-light:   rgba(255,255,255,0.75);
+      --text:           #4A3F35;
+      --text-muted:     #7A6F65;
+      --text-dim:       #B5AAA2;
+      --accent:         #FF8C78;
+      --accent2:        #5DCEA8;
+      --accent3:        #F0C84A;
+      --shadow-clay:    6px 6px 14px rgba(0,0,0,0.10), -4px -4px 10px rgba(255,255,255,0.80);
+      --shadow-press:   2px 2px 5px rgba(0,0,0,0.10), -1px -1px 4px rgba(255,255,255,0.70);
+      --panel-w:        268px;
+      --gap:            10px;
+      --card-b-img:     linear-gradient(135deg, #FFB5A7 0%, #F9E79F 55%, #A3E4D7 100%);
+      --card-f-img:     linear-gradient(160deg, rgba(255,255,255,0.90) 0%, rgba(240,248,245,0.92) 100%);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg);
+      background-image: url("bg_props.webp");
+      background-size: 700px auto;
+      background-position: center;
+      background-repeat: no-repeat;
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    /* ══════════════════════════════════════
+       3-COLUMN DASHBOARD LAYOUT
+    ══════════════════════════════════════ */
+    .dashboard {
+      display: grid;
+      grid-template-columns: var(--panel-w) 1fr var(--panel-w);
+      height: 100vh;
+    }
+
+    /* ── Panels ── */
+    .panel {
+      display: flex;
+      flex-direction: column;
+      padding: 16px 14px;
+      gap: 12px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.50);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255,255,255,0.80);
+      box-shadow: var(--shadow-clay);
+    }
+    .panel-left  { border-right: 1px solid rgba(0,0,0,0.07); }
+    .panel-right { border-left:  1px solid rgba(0,0,0,0.07); }
+
+    /* ── Center ── */
+    .center {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ══════════════════════════════════════
+       LEFT PANEL — INPUT / SETTINGS
+    ══════════════════════════════════════ */
+    .panel-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .num-input {
+      width: 100%;
+      background: rgba(255,255,255,0.70);
+      border: 1px solid rgba(0,0,0,0.10);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 8px 12px;
+      outline: none;
+      box-shadow: inset 2px 2px 6px rgba(0,0,0,0.06), inset -1px -1px 4px rgba(255,255,255,0.80);
+      transition: border-color 0.15s;
+    }
+    .num-input:focus { border-color: var(--accent); }
+
+    .textarea-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 0;
+    }
+
+    .nickname-textarea {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      background: rgba(255,255,255,0.70);
+      border: 1px solid rgba(0,0,0,0.10);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      padding: 10px 12px;
+      resize: none;
+      outline: none;
+      box-shadow: inset 2px 2px 6px rgba(0,0,0,0.06), inset -1px -1px 4px rgba(255,255,255,0.80);
+      transition: border-color 0.15s;
+    }
+    .nickname-textarea:focus { border-color: var(--accent); }
+    .nickname-textarea::placeholder { color: var(--text-dim); }
+
+    /* ══════════════════════════════════════
+       BUTTONS
+    ══════════════════════════════════════ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 9px 14px;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.15s, transform 0.1s, box-shadow 0.1s;
+      white-space: nowrap;
+    }
+    .btn:hover:not(:disabled)  { opacity: 0.88; }
+    .btn:active:not(:disabled) { transform: translateY(1px); box-shadow: var(--shadow-press); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #FF8C78 0%, #FFB5A7 100%);
+      color: #fff;
+      border-top: 1px solid rgba(255,255,255,0.60);
+      box-shadow: var(--shadow-clay);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(0,0,0,0.10);
+      border-top: 1px solid rgba(255,255,255,0.80);
+      color: var(--text-muted);
+      box-shadow: var(--shadow-clay);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #5DCEA8 0%, #A3E4D7 100%);
+      color: #fff;
+      border-top: 1px solid rgba(255,255,255,0.60);
+      box-shadow: var(--shadow-clay);
+    }
+    .btn-danger {
+      background: rgba(255,100,80,0.10);
+      border: 1px solid rgba(200,60,40,0.18);
+      color: #C0392B;
+    }
+    .btn-full   { width: 100%; }
+    .btn-raffle { padding: 12px 28px; font-size: 0.95rem; }
+    .btn-sm     { padding: 6px 11px; font-size: 0.83rem; }
+
+    /* ══════════════════════════════════════
+       CENTER — CARD GRID
+    ══════════════════════════════════════ */
+    .card-grid-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      min-height: 0;
+      position: relative;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(var(--card-cols, 4), var(--card-w, 120px));
+      gap: var(--gap);
+      place-content: center;
+    }
+
+    .empty-state {
+      color: var(--text-dim);
+      font-size: 0.88rem;
+      text-align: center;
+      line-height: 1.9;
+    }
+
+    /* ── Card ── */
+    .card {
+      width: var(--card-w, 120px);
+      aspect-ratio: 2/3;
+      perspective: 1200px;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .card-back {
+      background-image: var(--card-b-img);
+      background-size: cover;
+      background-position: center;
+      border: 1px solid rgba(255,255,255,0.60);
+      box-shadow: var(--shadow-clay);
+    }
+
+    .card-front {
+      transform: rotateY(180deg);
+      background-image: var(--card-f-img);
+      background-size: cover;
+      background-position: center;
+      border: 1px solid rgba(255,255,255,0.60);
+      box-shadow: var(--shadow-clay);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .card-nickname {
+      font-size: clamp(0.65rem, calc(var(--card-w, 120px) * 0.09), 1.1rem);
+      font-weight: 700;
+      color: #4A3F35;
+      text-align: center;
+      word-break: break-all;
+      text-shadow: 0 1px 4px rgba(255,255,255,0.80);
+      line-height: 1.3;
+    }
+
+    /* winner bounce state */
+    .card.winner-glow {
+      animation: winner-bounce 0.8s ease-in-out infinite alternate;
+    }
+    @keyframes winner-bounce {
+      from {
+        transform: translateY(0) scale(1.0);
+        filter: drop-shadow(0 4px 14px rgba(255,140,120,0.55));
+      }
+      to {
+        transform: translateY(-7px) scale(1.04);
+        filter: drop-shadow(0 10px 24px rgba(93,206,168,0.65));
+      }
+    }
+
+    /* ── Controls bar ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 14px 20px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      flex-shrink: 0;
+    }
+
+    .skip-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .skip-label input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* ══════════════════════════════════════
+       RIGHT PANEL — LIST MANAGEMENT
+    ══════════════════════════════════════ */
+    .list-block {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      gap: 6px;
+    }
+    .list-block.upper-block { flex: 1; }
+    .list-block.lower-block { flex: 1; }
+
+    .list-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .list-count {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.60);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 999px;
+      padding: 1px 8px;
+      box-shadow: var(--shadow-clay);
+    }
+
+    .list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-height: 0;
+      padding-right: 2px;
+    }
+    .list::-webkit-scrollbar { width: 3px; }
+    .list::-webkit-scrollbar-track { background: transparent; }
+    .list::-webkit-scrollbar-thumb { background: rgba(255,140,120,0.35); border-radius: 2px; }
+
+    .list-item {
+      padding: 7px 10px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+      user-select: none;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+    .list-item:hover { background: rgba(255,140,120,0.10); }
+    .list-item.selected {
+      background: rgba(255,140,120,0.20);
+      border-color: rgba(255,140,120,0.50);
+      color: var(--text);
+    }
+
+    /* highlight: duplicate in lower list */
+    .list-item.highlight {
+      animation: hl-flash 0.35s ease-in-out 5;
+    }
+    @keyframes hl-flash {
+      0%, 100% { background: rgba(240,200,74,0.10); border-color: rgba(240,200,74,0.20); }
+      50%       { background: rgba(240,200,74,0.30); border-color: rgba(240,200,74,0.60); color: #8B6914; }
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(0,0,0,0.08);
+      flex-shrink: 0;
+      margin: 2px 0;
+    }
+
+    .move-controls {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .move-controls .btn { flex: 1; }
+
+    .list-actions {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .list-actions .btn { flex: 1; min-width: 0; }
+
+    /* ══════════════════════════════════════
+       FLOATING NAV
+    ══════════════════════════════════════ */
+    .float-nav {
+      position: fixed;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-right: none;
+      border-top: 1px solid rgba(255,255,255,0.80);
+      border-radius: 12px 0 0 12px;
+      padding: 10px 6px;
+      box-shadow: var(--shadow-clay);
+      z-index: 100;
+    }
+    .float-nav-item {
+      display: block;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 8px;
+      color: var(--text-muted);
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+    .float-nav-item.current {
+      background: rgba(255,140,120,0.15);
+      color: var(--accent);
+    }
+    .float-nav-item:not(.current):hover { background: rgba(255,140,120,0.10); }
+  </style>
+</head>
+<body>
+<div class="dashboard">
+
+  <!-- ══ LEFT PANEL ══ -->
+  <aside class="panel panel-left">
+    <div class="setting-group">
+      <p class="panel-label">당첨자 수</p>
+      <input type="number" id="winnerCountInput" class="num-input" min="1" value="1">
+    </div>
+
+    <div class="textarea-wrap">
+      <p class="panel-label">참가자 입력 (한 줄에 한 명)</p>
+      <textarea
+        id="nicknameInput"
+        class="nickname-textarea"
+        placeholder="닉네임을 한 줄씩 붙여넣으세요&#10;Ctrl+Enter 로 빠르게 추가"
+      ></textarea>
+    </div>
+
+    <button id="addBtn" class="btn btn-primary btn-full">참가자 추가</button>
+  </aside>
+
+  <!-- ══ CENTER ══ -->
+  <main class="center">
+    <div class="card-grid-wrap" id="cardGridWrap">
+      <div class="card-grid" id="cardGrid">
+        <p class="empty-state">참가자를 입력하고<br>추가 버튼을 눌러주세요</p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <a href="index.html" class="btn btn-secondary">← 메인</a>
+      <label class="skip-label">
+        <input type="checkbox" id="skipCheck"> 스킵
+      </label>
+      <button id="raffleBtn" class="btn btn-primary btn-raffle">추첨 시작</button>
+      <button id="confirmBtn" class="btn btn-success btn-raffle" style="display:none">결과 확정</button>
+    </div>
+  </main>
+
+  <!-- ══ RIGHT PANEL ══ -->
+  <aside class="panel panel-right">
+
+    <div class="list-block upper-block">
+      <div class="list-header">
+        <p class="panel-label">대기열</p>
+        <span class="list-count" id="upperCount">0</span>
+      </div>
+      <ul class="list" id="upperList"></ul>
+    </div>
+
+    <div class="move-controls">
+      <button id="moveUpBtn"   class="btn btn-secondary btn-sm" disabled>↑ 복귀</button>
+      <button id="moveDownBtn" class="btn btn-secondary btn-sm" disabled>↓ 제외</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="list-block lower-block">
+      <div class="list-header">
+        <p class="panel-label">당첨 / 제외</p>
+        <span class="list-count" id="lowerCount">0</span>
+      </div>
+      <ul class="list" id="lowerList"></ul>
+    </div>
+
+    <div class="list-actions">
+      <button id="copyBtn"       class="btn btn-secondary btn-sm" disabled>복사</button>
+      <button id="resetLowerBtn" class="btn btn-danger btn-sm">하단 초기화</button>
+      <button id="resetAllBtn"   class="btn btn-danger btn-sm">전체 초기화</button>
+    </div>
+
+  </aside>
+</div>
+
+<nav class="float-nav">
+  <a href="index.html" class="float-nav-item">메인</a>
+  <span class="float-nav-item current">추첨</span>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+'use strict';
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+const state = {
+  participants:   [],       // 상단 대기열 (string[])
+  winners:        [],       // 하단 당첨/제외 (string[])
+  settings:       { winnerCount: 1 },
+  selected:       null,     // { nickname, from: 'upper'|'lower' }
+  pendingWinners: [],       // 애니메이션 후 확정 대기
+  uiMode:         'idle',   // 'idle' | 'running' | 'confirming'
+};
+
+const cardMap = new Map(); // nickname -> card DOM element
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+const tw = (target, vars) =>
+  new Promise(res => gsap.to(target, { ...vars, onComplete: res }));
+
+const wait = ms => new Promise(res => setTimeout(res, ms));
+
+function escapeHtml(s) {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ══════════════════════════════════════════
+// LOCAL STORAGE
+// ══════════════════════════════════════════
+function saveState() {
+  try {
+    localStorage.setItem('kangHeeDay_participants', JSON.stringify(state.participants));
+    localStorage.setItem('kangHeeDay_winners',      JSON.stringify(state.winners));
+    localStorage.setItem('kangHeeDay_settings',     JSON.stringify(state.settings));
+  } catch { /* storage full — ignore */ }
+}
+
+function loadState() {
+  try {
+    const p = localStorage.getItem('kangHeeDay_participants');
+    const w = localStorage.getItem('kangHeeDay_winners');
+    const s = localStorage.getItem('kangHeeDay_settings');
+    if (p) state.participants = JSON.parse(p);
+    if (w) state.winners      = JSON.parse(w);
+    if (s) state.settings     = { ...state.settings, ...JSON.parse(s) };
+  } catch { /* corrupt data — ignore */ }
+}
+
+// ══════════════════════════════════════════
+// CARD GRID SIZING
+// ══════════════════════════════════════════
+function updateCardGridSize() {
+  const wrap  = document.getElementById('cardGridWrap');
+  const grid  = document.getElementById('cardGrid');
+  const count = state.participants.length;
+  if (count === 0) return;
+
+  const areaW   = wrap.clientWidth  - 48;
+  const areaH   = wrap.clientHeight - 48;
+  const gap      = 10;
+  const maxCardW = 300;
+
+  let bestCols = 1, bestW = 0;
+
+  for (let cols = 1; cols <= Math.min(count, 10); cols++) {
+    const rows   = Math.ceil(count / cols);
+    const byW    = (areaW - gap * (cols - 1)) / cols;
+    const byH    = ((areaH - gap * (rows - 1)) / rows) * (2 / 3);
+    const cardW  = Math.min(byW, byH, maxCardW);
+    if (cardW > bestW) { bestCols = cols; bestW = cardW; }
+  }
+
+  grid.style.setProperty('--card-cols', bestCols);
+  grid.style.setProperty('--card-w', Math.floor(bestW) + 'px');
+}
+
+// ══════════════════════════════════════════
+// CARD DOM
+// ══════════════════════════════════════════
+function createCard(nickname) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.nickname = nickname;
+  card.innerHTML = `
+    <div class="card-inner">
+      <div class="card-face card-back"></div>
+      <div class="card-face card-front">
+        <span class="card-nickname">${escapeHtml(nickname)}</span>
+      </div>
+    </div>`;
+  cardMap.set(nickname, card);
+  return card;
+}
+
+function renderCards(animateIn = false) {
+  const grid = document.getElementById('cardGrid');
+  grid.innerHTML = '';
+  cardMap.clear();
+
+  if (state.participants.length === 0) {
+    grid.innerHTML = '<p class="empty-state">참가자를 입력하고<br>추가 버튼을 눌러주세요</p>';
+    return;
+  }
+
+  state.participants.forEach(nick => grid.appendChild(createCard(nick)));
+  updateCardGridSize();
+
+  if (animateIn) {
+    gsap.from(grid.querySelectorAll('.card'), {
+      opacity: 0,
+      scale: 0.82,
+      duration: 0.38,
+      stagger: { each: 0.03, from: 'random' },
+      ease: 'back.out(2.0)',
+    });
+  }
+}
+
+// ══════════════════════════════════════════
+// LIST RENDER
+// ══════════════════════════════════════════
+function renderLists() {
+  renderUpper();
+  renderLower();
+  updateMoveButtons();
+}
+
+function renderUpper() {
+  const ul = document.getElementById('upperList');
+  ul.innerHTML = '';
+  const sorted = [...state.participants].sort((a, b) => a.localeCompare(b, 'ko'));
+  sorted.forEach(nick => ul.appendChild(makeListItem(nick, 'upper')));
+  document.getElementById('upperCount').textContent = state.participants.length;
+}
+
+function renderLower() {
+  const ul = document.getElementById('lowerList');
+  ul.innerHTML = '';
+  state.winners.forEach(nick => ul.appendChild(makeListItem(nick, 'lower')));
+  document.getElementById('lowerCount').textContent = state.winners.length;
+}
+
+function makeListItem(nickname, from) {
+  const li = document.createElement('li');
+  li.className = 'list-item';
+  li.dataset.nickname = nickname;
+  li.textContent = nickname;
+
+  const isSelected =
+    state.selected?.nickname === nickname &&
+    state.selected?.from === from;
+  if (isSelected) li.classList.add('selected');
+
+  li.addEventListener('click', () => {
+    if (state.uiMode !== 'idle') return;
+    state.selected = isSelected ? null : { nickname, from };
+    renderLists();
+  });
+  return li;
+}
+
+function updateMoveButtons() {
+  const sel = state.selected;
+  document.getElementById('moveUpBtn').disabled   = !sel || sel.from !== 'lower';
+  document.getElementById('moveDownBtn').disabled = !sel || sel.from !== 'upper';
+  document.getElementById('copyBtn').disabled     = !sel;
+}
+
+function renderAll(animateCards = false) {
+  renderCards(animateCards);
+  renderLists();
+}
+
+// ══════════════════════════════════════════
+// UI MODE
+// ══════════════════════════════════════════
+function setUIMode(mode) {
+  state.uiMode = mode;
+  const idle       = mode === 'idle';
+  const confirming = mode === 'confirming';
+
+  // Left panel
+  document.getElementById('winnerCountInput').disabled = !idle;
+  document.getElementById('nicknameInput').disabled    = !idle;
+  document.getElementById('addBtn').disabled           = !idle;
+
+  // Center
+  const raffleBtn  = document.getElementById('raffleBtn');
+  const confirmBtn = document.getElementById('confirmBtn');
+  raffleBtn.style.display  = confirming ? 'none' : '';
+  raffleBtn.disabled       = !idle;
+  confirmBtn.style.display = confirming ? '' : 'none';
+
+  // Right
+  const disableRight = !idle;
+  document.getElementById('moveUpBtn').disabled     = disableRight;
+  document.getElementById('moveDownBtn').disabled   = disableRight;
+  document.getElementById('copyBtn').disabled       = disableRight || !state.selected;
+  document.getElementById('resetLowerBtn').disabled = disableRight;
+  document.getElementById('resetAllBtn').disabled   = disableRight;
+
+  if (idle) updateMoveButtons();
+}
+
+// ══════════════════════════════════════════
+// ANIMATION PHASES
+// ══════════════════════════════════════════
+
+// Phase 1 — Float (≈1s): 카드가 공중에서 유영
+async function phase1Float(cards) {
+  await tw(cards, {
+    y: -12,
+    duration: 0.5,
+    ease: 'sine.inOut',
+    stagger: { each: 0.04, from: 'center' },
+  });
+  await tw(cards, {
+    y: 0,
+    duration: 0.5,
+    ease: 'sine.inOut',
+    stagger: { each: 0.04, from: 'center' },
+  });
+}
+
+// Phase 2 — Shuffle (≈2s): 고속 셔플
+async function phase2Shuffle(cards) {
+  for (let i = 0; i < 8; i++) {
+    const spread = 40 + i * 8;
+    await tw(cards, {
+      x: () => (Math.random() - 0.5) * spread,
+      y: () => (Math.random() - 0.5) * spread * 0.6,
+      rotation: () => (Math.random() - 0.5) * 20,
+      duration: 0.2,
+      ease: 'back.inOut(1.5)',
+    });
+  }
+  await tw(cards, {
+    x: 0, y: 0, rotation: 0,
+    duration: 0.25,
+    ease: 'power3.out',
+  });
+}
+
+// Phase 3 — Tension (≈0.5s): 화면 진동
+async function phase3Tension() {
+  const grid = document.getElementById('cardGrid');
+  for (let i = 0; i < 7; i++) {
+    await tw(grid, {
+      x: i % 2 === 0 ? -8 : 8,
+      duration: 0.055,
+      ease: 'none',
+    });
+  }
+  await tw(grid, { x: 0, duration: 0.08, ease: 'power2.out' });
+  await wait(120);
+}
+
+// Phase 4 — Open (≈1.5s): 당첨 카드 뒤집기 + 낙첨 카드 퇴장
+async function phase4Open(winnerCards, loserCards) {
+  const promises = [];
+
+  // 낙첨 카드 → 아래로 퇴장
+  if (loserCards.length > 0) {
+    promises.push(
+      tw(loserCards, {
+        y: 60, opacity: 0,
+        duration: 0.45,
+        ease: 'power2.in',
+        stagger: { each: 0.025, from: 'random' },
+      })
+    );
+  }
+
+  // 당첨 카드 → 뒤집기 + 바운스 글로우
+  winnerCards.forEach((card, i) => {
+    promises.push(
+      new Promise(res => {
+        setTimeout(() => {
+          tw(card.querySelector('.card-inner'), {
+            rotateY: 180,
+            duration: 0.55,
+            ease: 'back.out(2.5)',
+          }).then(() => {
+            card.classList.add('winner-glow');
+            res();
+          });
+        }, i * 180);
+      })
+    );
+  });
+
+  await Promise.all(promises);
+  await wait(200);
+}
+
+// ══════════════════════════════════════════
+// RAFFLE LOGIC
+// ══════════════════════════════════════════
+function pickWinners(count) {
+  const pool = [...state.participants];
+  const picked = [];
+  const actual = Math.min(count, pool.length);
+  for (let i = 0; i < actual; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    picked.push(pool.splice(idx, 1)[0]);
+  }
+  return picked;
+}
+
+async function startRaffle() {
+  const count = parseInt(document.getElementById('winnerCountInput').value, 10);
+
+  if (!count || count < 1) {
+    alert('당첨자 수를 1 이상으로 설정해주세요.'); return;
+  }
+  if (state.participants.length === 0) {
+    alert('참가자가 없습니다.'); return;
+  }
+  if (count > state.participants.length) {
+    alert(`당첨자 수(${count})가 참가자 수(${state.participants.length})보다 많습니다.`); return;
+  }
+
+  const winnerNicks = pickWinners(count);
+  const skip = document.getElementById('skipCheck').checked;
+  const allCards = [...document.querySelectorAll('.card')];
+  const winnerCards = winnerNicks.map(n => cardMap.get(n)).filter(Boolean);
+  const loserCards  = allCards.filter(c => !winnerCards.includes(c));
+
+  if (skip) {
+    // 스킵: 애니메이션 없이 즉시 결과 표시
+    gsap.set(loserCards, { y: 60, opacity: 0 });
+    winnerCards.forEach(card => {
+      gsap.set(card.querySelector('.card-inner'), { rotateY: 180 });
+      card.classList.add('winner-glow');
+    });
+    state.pendingWinners = winnerNicks;
+    setUIMode('confirming');
+  } else {
+    // 전체 애니메이션
+    setUIMode('running');
+    await phase1Float(allCards);
+    await phase2Shuffle(allCards);
+    await phase3Tension();
+    await phase4Open(winnerCards, loserCards);
+    state.pendingWinners = winnerNicks;
+    setUIMode('confirming');
+  }
+}
+
+async function confirmResults() {
+  const confirmed = state.pendingWinners;
+  const winnerCards = confirmed.map(n => cardMap.get(n)).filter(Boolean);
+
+  // 당첨 카드 애니메이션 아웃
+  if (winnerCards.length > 0) {
+    await tw(winnerCards, {
+      scale: 0.75, opacity: 0, y: -20,
+      duration: 0.3,
+      stagger: 0.04,
+      ease: 'power2.in',
+    });
+  }
+
+  // 상태 업데이트
+  state.winners.push(...confirmed);
+  state.participants = state.participants.filter(n => !confirmed.includes(n));
+  state.pendingWinners = [];
+  state.selected = null;
+
+  saveState();
+  renderAll(true);
+  setUIMode('idle');
+}
+
+// ══════════════════════════════════════════
+// PARTICIPANT MANAGEMENT
+// ══════════════════════════════════════════
+function addParticipants() {
+  const raw   = document.getElementById('nicknameInput').value;
+  const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  if (lines.length === 0) return;
+
+  const lowerSet = new Set(state.winners);
+  const upperSet = new Set(state.participants);
+  const dupes = [], added = [];
+
+  for (const nick of lines) {
+    if (lowerSet.has(nick)) {
+      dupes.push(nick);
+    } else if (!upperSet.has(nick)) {
+      added.push(nick);
+      upperSet.add(nick);
+    }
+    // 이미 상단에 있으면 무시 (중복 제거)
+  }
+
+  state.participants.push(...added);
+  document.getElementById('nicknameInput').value = '';
+  saveState();
+  renderAll(added.length > 0);
+
+  if (dupes.length > 0) highlightLower(dupes);
+}
+
+function highlightLower(nicks) {
+  const ul = document.getElementById('lowerList');
+  nicks.forEach(nick => {
+    const item = [...ul.querySelectorAll('.list-item')]
+      .find(li => li.dataset.nickname === nick);
+    if (!item) return;
+    item.classList.remove('highlight');
+    void item.offsetWidth; // reflow
+    item.classList.add('highlight');
+    item.addEventListener('animationend', () => item.classList.remove('highlight'), { once: true });
+    item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
+}
+
+function moveToLower() {
+  if (!state.selected || state.selected.from !== 'upper') return;
+  const nick = state.selected.nickname;
+  state.participants = state.participants.filter(n => n !== nick);
+  state.winners.push(nick);
+  state.selected = null;
+  saveState();
+  renderAll(false);
+}
+
+function moveToUpper() {
+  if (!state.selected || state.selected.from !== 'lower') return;
+  const nick = state.selected.nickname;
+  state.winners = state.winners.filter(n => n !== nick);
+  state.participants.push(nick);
+  state.selected = null;
+  saveState();
+  renderAll(true);
+}
+
+function resetLower() {
+  if (!confirm('하단 리스트를 초기화하시겠습니까?')) return;
+  state.winners  = [];
+  state.selected = null;
+  saveState();
+  renderLists();
+}
+
+function resetAll() {
+  if (!confirm('전체를 초기화하시겠습니까?')) return;
+  state.participants   = [];
+  state.winners        = [];
+  state.selected       = null;
+  state.pendingWinners = [];
+  saveState();
+  renderAll(false);
+  setUIMode('idle');
+}
+
+// ══════════════════════════════════════════
+// CLIPBOARD
+// ══════════════════════════════════════════
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand('copy'); } finally { ta.remove(); }
+}
+
+function copySelected() {
+  if (!state.selected) return;
+  const text = state.selected.nickname;
+  const btn  = document.getElementById('copyBtn');
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+  btn.textContent = '복사됨!';
+  setTimeout(() => (btn.textContent = '복사'), 1600);
+}
+
+// ══════════════════════════════════════════
+// ASSET CHECK (이미지 폴백)
+// ══════════════════════════════════════════
+function checkImage(src, cssVar) {
+  const img = new Image();
+  img.onload = () =>
+    document.documentElement.style.setProperty(cssVar, `url("${src}")`);
+  img.src = src;
+}
+
+// ══════════════════════════════════════════
+// EVENT BINDING
+// ══════════════════════════════════════════
+function bindEvents() {
+  document.getElementById('addBtn')
+    .addEventListener('click', addParticipants);
+
+  document.getElementById('nicknameInput')
+    .addEventListener('keydown', e => {
+      if (e.ctrlKey && e.key === 'Enter') addParticipants();
+    });
+
+  document.getElementById('winnerCountInput')
+    .addEventListener('change', () => {
+      state.settings.winnerCount =
+        parseInt(document.getElementById('winnerCountInput').value, 10) || 1;
+      saveState();
+    });
+
+  document.getElementById('raffleBtn')
+    .addEventListener('click', startRaffle);
+
+  document.getElementById('confirmBtn')
+    .addEventListener('click', confirmResults);
+
+  document.getElementById('moveUpBtn')
+    .addEventListener('click', moveToUpper);
+
+  document.getElementById('moveDownBtn')
+    .addEventListener('click', moveToLower);
+
+  document.getElementById('copyBtn')
+    .addEventListener('click', copySelected);
+
+  document.getElementById('resetLowerBtn')
+    .addEventListener('click', resetLower);
+
+  document.getElementById('resetAllBtn')
+    .addEventListener('click', resetAll);
+
+  window.addEventListener('resize', () => {
+    if (state.participants.length > 0) updateCardGridSize();
+  });
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+function init() {
+  loadState();
+  document.getElementById('winnerCountInput').value =
+    state.settings.winnerCount || 1;
+
+  checkImage('card_b.webp', '--card-b-img');
+  checkImage('card_f.webp', '--card-f-img');
+
+  renderAll(false);
+  bindEvents();
+}
+
+init();
+</script>
+</body>
+</html>
