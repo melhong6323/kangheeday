@@ -531,7 +531,7 @@
     </div>
 
     <div class="list-actions">
-      <button id="copyBtn"       class="btn btn-secondary btn-sm" disabled>복사</button>
+      <button id="restoreAllBtn" class="btn btn-secondary btn-sm">전체 복귀</button>
       <button id="resetLowerBtn" class="btn btn-danger btn-sm">하단 초기화</button>
       <button id="resetAllBtn"   class="btn btn-danger btn-sm">전체 초기화</button>
     </div>
@@ -717,7 +717,6 @@ function updateMoveButtons() {
   const sel = state.selected;
   document.getElementById('moveUpBtn').disabled   = !sel || sel.from !== 'lower';
   document.getElementById('moveDownBtn').disabled = !sel || sel.from !== 'upper';
-  document.getElementById('copyBtn').disabled     = !sel;
 }
 
 function renderAll(animateCards = false) {
@@ -749,7 +748,7 @@ function setUIMode(mode) {
   const disableRight = !idle;
   document.getElementById('moveUpBtn').disabled     = disableRight;
   document.getElementById('moveDownBtn').disabled   = disableRight;
-  document.getElementById('copyBtn').disabled       = disableRight || !state.selected;
+  document.getElementById('restoreAllBtn').disabled = disableRight;
   document.getElementById('resetLowerBtn').disabled = disableRight;
   document.getElementById('resetAllBtn').disabled   = disableRight;
 
@@ -883,23 +882,45 @@ async function phase1Float(cards) {
   });
 }
 
-// Phase 2 — Shuffle (≈2s): 고속 셔플
+// Phase 2 — Shuffle (≈2s): 실제 위치 스왑 (FLIP technique, 4라운드)
 async function phase2Shuffle(cards) {
-  for (let i = 0; i < 8; i++) {
-    const spread = 40 + i * 8;
-    await tw(cards, {
-      x: () => (Math.random() - 0.5) * spread,
-      y: () => (Math.random() - 0.5) * spread * 0.6,
-      rotation: () => (Math.random() - 0.5) * 20,
-      duration: 0.2,
-      ease: 'back.inOut(1.5)',
+  const grid = document.getElementById('cardGrid');
+
+  for (let round = 0; round < 4; round++) {
+    // FIRST: 현재 화면 위치 기록
+    const firstRects = cards.map(c => c.getBoundingClientRect());
+
+    // 피셔-예이츠 랜덤 DOM 재배치
+    const arr = [...cards];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    arr.forEach(c => grid.appendChild(c));
+
+    // LAST: 새 위치 기록
+    const lastRects = cards.map(c => c.getBoundingClientRect());
+
+    // INVERT: 이전 위치로 순간이동 (시각적으로 원래 자리처럼 보이게)
+    cards.forEach((card, i) => {
+      gsap.set(card, {
+        x: firstRects[i].left - lastRects[i].left,
+        y: firstRects[i].top  - lastRects[i].top,
+        rotation: (Math.random() - 0.5) * 16,
+      });
     });
+
+    // PLAY: 새 위치로 부드럽게 이동
+    const isLast = round === 3;
+    await tw(cards, {
+      x: 0, y: 0, rotation: 0,
+      duration: isLast ? 0.32 : 0.22,
+      ease:     isLast ? 'back.out(1.4)' : 'power2.inOut',
+      stagger:  { each: 0.015, from: 'random' },
+    });
+
+    if (!isLast) await wait(55);
   }
-  await tw(cards, {
-    x: 0, y: 0, rotation: 0,
-    duration: 0.25,
-    ease: 'power3.out',
-  });
 }
 
 // Phase 3 — Tension (≈0.5s): 화면 진동 + 시네마 오버레이 + 당첨 카드 강조
@@ -1117,30 +1138,13 @@ function resetAll() {
   setUIMode('idle');
 }
 
-// ══════════════════════════════════════════
-// CLIPBOARD
-// ══════════════════════════════════════════
-function fallbackCopy(text) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.cssText = 'position:fixed;top:-9999px';
-  document.body.appendChild(ta);
-  ta.focus();
-  ta.select();
-  try { document.execCommand('copy'); } finally { ta.remove(); }
-}
-
-function copySelected() {
-  if (!state.selected) return;
-  const text = state.selected.nickname;
-  const btn  = document.getElementById('copyBtn');
-  if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
-  } else {
-    fallbackCopy(text);
-  }
-  btn.textContent = '복사됨!';
-  setTimeout(() => (btn.textContent = '복사'), 1600);
+function restoreAll() {
+  if (state.winners.length === 0) return;
+  state.participants.push(...state.winners);
+  state.winners  = [];
+  state.selected = null;
+  saveState();
+  renderAll(true);
 }
 
 // ══════════════════════════════════════════
@@ -1184,8 +1188,8 @@ function bindEvents() {
   document.getElementById('moveDownBtn')
     .addEventListener('click', moveToLower);
 
-  document.getElementById('copyBtn')
-    .addEventListener('click', copySelected);
+  document.getElementById('restoreAllBtn')
+    .addEventListener('click', restoreAll);
 
   document.getElementById('resetLowerBtn')
     .addEventListener('click', resetLower);
