@@ -260,7 +260,7 @@
     }
 
     .card-nickname {
-      font-size: clamp(0.65rem, calc(var(--card-w, 120px) * 0.09), 1.1rem);
+      font-size: clamp(0.75rem, calc(var(--card-w, 120px) * 0.11), 2rem);
       font-weight: 700;
       color: #4A3F35;
       text-align: center;
@@ -446,9 +446,25 @@
       color: var(--accent);
     }
     .float-nav-item:not(.current):hover { background: rgba(255,140,120,0.10); }
+
+    /* ══════════════════════════════════════
+       CINEMA OVERLAY
+    ══════════════════════════════════════ */
+    #cinemaOverlay {
+      display: none;
+      opacity: 0;
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      pointer-events: none;
+      background: radial-gradient(ellipse 55% 55% at 50% 50%,
+        transparent 0%,
+        rgba(30, 20, 15, 0.72) 100%);
+    }
   </style>
 </head>
 <body>
+<div id="cinemaOverlay"></div>
 <div class="dashboard">
 
   <!-- ══ LEFT PANEL ══ -->
@@ -741,6 +757,113 @@ function setUIMode(mode) {
 }
 
 // ══════════════════════════════════════════
+// CINEMATIC HELPERS
+// ══════════════════════════════════════════
+
+function burstParticles(cx, cy) {
+  const colors = ['#FF8C78','#5DCEA8','#F0C84A','#FFB5A7','#ffffff'];
+  const shapes = ['●','✦','✿','♡'];
+  const count  = 20;
+  for (let i = 0; i < count; i++) {
+    const el    = document.createElement('span');
+    const angle = (i / count) * 360;
+    const dist  = 70 + Math.random() * 90;
+    const dx    = Math.cos(angle * Math.PI / 180) * dist;
+    const dy    = Math.sin(angle * Math.PI / 180) * dist;
+    el.textContent = shapes[i % shapes.length];
+    el.style.cssText = `
+      position:fixed;
+      left:${cx}px; top:${cy}px;
+      font-size:${10 + Math.random() * 10}px;
+      color:${colors[i % colors.length]};
+      pointer-events:none;
+      z-index:2000;
+      transform:translate(-50%,-50%);
+    `;
+    document.body.appendChild(el);
+    gsap.to(el, {
+      x: dx, y: dy,
+      opacity: 0,
+      scale: 0.2,
+      duration: 0.65 + Math.random() * 0.4,
+      ease: 'power2.out',
+      onComplete: () => el.remove(),
+    });
+  }
+}
+
+function createHeroClone(card) {
+  const rect  = card.getBoundingClientRect();
+  const clone = card.cloneNode(true);
+  clone.id    = 'heroClone';
+  clone.style.cssText = `
+    position: fixed;
+    left: ${rect.left}px;
+    top: ${rect.top}px;
+    width: ${rect.width}px;
+    height: ${rect.height}px;
+    z-index: 1000;
+    pointer-events: none;
+    margin: 0;
+    border-radius: 12px;
+  `;
+  document.body.appendChild(clone);
+
+  // 히어로 카드: 앞면 닉네임을 방송에서 읽히는 크기로 고정
+  const heroNick = clone.querySelector('.card-nickname');
+  if (heroNick) heroNick.style.fontSize = '3.3rem';
+
+  return { clone, rect };
+}
+
+async function heroReveal(winnerCards) {
+  for (const card of winnerCards) {
+    const { clone, rect } = createHeroClone(card);
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const targetW = Math.min(vw * 0.30, 340);
+    const targetH = targetW * 1.5;
+    const targetX = (vw - targetW) / 2;
+    const targetY = (vh - targetH) / 2;
+
+    // 중앙으로 비행
+    await tw(clone, {
+      left: targetX, top: targetY,
+      width: targetW, height: targetH,
+      duration: 0.38, ease: 'power3.out',
+    });
+
+    // 뒤집기: 90°에서 잠시 멈춤 → 180° 완성
+    const inner = clone.querySelector('.card-inner');
+    await tw(inner, { rotateY: 90, duration: 0.22, ease: 'power2.in' });
+    await wait(80);
+    await tw(inner, { rotateY: 180, duration: 0.30, ease: 'back.out(1.8)' });
+
+    // 파티클 버스트
+    burstParticles(targetX + targetW / 2, targetY + targetH / 2);
+
+    await wait(520); // 감상 시간
+
+    // 원위치 복귀 + 페이드아웃
+    await tw(clone, {
+      left: rect.left, top: rect.top,
+      width: rect.width, height: rect.height,
+      opacity: 0,
+      duration: 0.30, ease: 'power2.in',
+    });
+    clone.remove();
+
+    // 원본 카드 앞면 전환
+    gsap.set(card.querySelector('.card-inner'), { rotateY: 180 });
+    card.classList.add('winner-glow');
+    // phase3에서 올린 scale 되돌리기
+    gsap.set(card, { scale: 1 });
+
+    await wait(150);
+  }
+}
+
+// ══════════════════════════════════════════
 // ANIMATION PHASES
 // ══════════════════════════════════════════
 
@@ -779,8 +902,14 @@ async function phase2Shuffle(cards) {
   });
 }
 
-// Phase 3 — Tension (≈0.5s): 화면 진동
-async function phase3Tension() {
+// Phase 3 — Tension (≈0.5s): 화면 진동 + 시네마 오버레이 + 당첨 카드 강조
+async function phase3Tension(winnerCards) {
+  // 시네마 오버레이 페이드인
+  const overlay = document.getElementById('cinemaOverlay');
+  overlay.style.display = 'block';
+  gsap.to(overlay, { opacity: 1, duration: 0.35 });
+
+  // 그리드 진동
   const grid = document.getElementById('cardGrid');
   for (let i = 0; i < 7; i++) {
     await tw(grid, {
@@ -790,45 +919,40 @@ async function phase3Tension() {
     });
   }
   await tw(grid, { x: 0, duration: 0.08, ease: 'power2.out' });
-  await wait(120);
+
+  // 당첨 카드만 살짝 앞으로 강조
+  gsap.to(winnerCards, { scale: 1.06, duration: 0.25, ease: 'back.out(2.0)' });
+  await wait(150);
 }
 
-// Phase 4 — Open (≈1.5s): 당첨 카드 뒤집기 + 낙첨 카드 퇴장
+// Phase 4 — Open: 낙첨 퇴장 → Hero Card 순서 공개 → overlay 제거
 async function phase4Open(winnerCards, loserCards) {
-  const promises = [];
-
-  // 낙첨 카드 → 아래로 퇴장
+  // 낙첨 카드 → blur + 아래로 퇴장
   if (loserCards.length > 0) {
-    promises.push(
-      tw(loserCards, {
-        y: 60, opacity: 0,
-        duration: 0.45,
-        ease: 'power2.in',
-        stagger: { each: 0.025, from: 'random' },
-      })
-    );
+    await tw(loserCards, {
+      y: 70, opacity: 0,
+      filter: 'blur(4px)',
+      duration: 0.4,
+      ease: 'power2.in',
+      stagger: { each: 0.02, from: 'random' },
+    });
   }
 
-  // 당첨 카드 → 뒤집기 + 바운스 글로우
-  winnerCards.forEach((card, i) => {
-    promises.push(
-      new Promise(res => {
-        setTimeout(() => {
-          tw(card.querySelector('.card-inner'), {
-            rotateY: 180,
-            duration: 0.55,
-            ease: 'back.out(2.5)',
-          }).then(() => {
-            card.classList.add('winner-glow');
-            res();
-          });
-        }, i * 180);
-      })
-    );
-  });
+  // Hero Card 루프 — 한 명씩 순서대로 공개
+  await heroReveal(winnerCards);
 
-  await Promise.all(promises);
-  await wait(200);
+  // 시네마 오버레이 제거
+  const overlay = document.getElementById('cinemaOverlay');
+  await new Promise(res => gsap.to(overlay, {
+    opacity: 0, duration: 0.4,
+    onComplete: () => {
+      overlay.style.opacity = '';
+      overlay.style.display = 'none';
+      res();
+    },
+  }));
+
+  await wait(150);
 }
 
 // ══════════════════════════════════════════
@@ -878,7 +1002,7 @@ async function startRaffle() {
     setUIMode('running');
     await phase1Float(allCards);
     await phase2Shuffle(allCards);
-    await phase3Tension();
+    await phase3Tension(winnerCards);
     await phase4Open(winnerCards, loserCards);
     state.pendingWinners = winnerNicks;
     setUIMode('confirming');
