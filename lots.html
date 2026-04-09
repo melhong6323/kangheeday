@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1920">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>앙희데이</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
@@ -29,6 +29,11 @@
       --gap:            10px;
       --card-b-img:     linear-gradient(135deg, #FFB5A7 0%, #F9E79F 55%, #A3E4D7 100%);
       --card-f-img:     linear-gradient(160deg, rgba(255,255,255,0.90) 0%, rgba(240,248,245,0.92) 100%);
+      /* ── 폰트 크기 토큰 ── */
+      --fs-label:       0.85rem;
+      --fs-body:        0.95rem;
+      --fs-sm:          0.90rem;
+      --fs-nav:         0.90rem;
     }
 
     html, body {
@@ -80,7 +85,7 @@
        LEFT PANEL — INPUT / SETTINGS
     ══════════════════════════════════════ */
     .panel-label {
-      font-size: 0.78rem;
+      font-size: var(--fs-label);
       font-weight: 600;
       color: var(--text-dim);
       letter-spacing: 0.08em;
@@ -150,7 +155,7 @@
       border: none;
       border-radius: 8px;
       font-family: inherit;
-      font-size: 0.9rem;
+      font-size: var(--fs-body);
       font-weight: 600;
       cursor: pointer;
       text-decoration: none;
@@ -187,7 +192,7 @@
     }
     .btn-full   { width: 100%; }
     .btn-raffle { padding: 12px 28px; font-size: 0.95rem; }
-    .btn-sm     { padding: 6px 11px; font-size: 0.83rem; }
+    .btn-sm     { padding: 6px 11px; font-size: var(--fs-sm); }
 
     /* ══════════════════════════════════════
        CENTER — CARD GRID
@@ -211,7 +216,7 @@
 
     .empty-state {
       color: var(--text-dim);
-      font-size: 0.88rem;
+      font-size: 1.00rem;
       text-align: center;
       line-height: 1.9;
     }
@@ -302,7 +307,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.8rem;
+      font-size: var(--fs-sm);
       color: var(--text-muted);
       cursor: pointer;
       user-select: none;
@@ -334,7 +339,7 @@
     }
 
     .list-count {
-      font-size: 0.76rem;
+      font-size: var(--fs-label);
       font-weight: 600;
       color: var(--text-muted);
       background: rgba(255,255,255,0.60);
@@ -362,7 +367,7 @@
       border-radius: 7px;
       border: 1px solid transparent;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: var(--fs-body);
       color: var(--text-muted);
       transition: background 0.12s, border-color 0.12s, color 0.12s;
       user-select: none;
@@ -432,7 +437,7 @@
     .float-nav-item {
       display: block;
       padding: 10px 14px;
-      font-size: 0.82rem;
+      font-size: var(--fs-nav);
       font-weight: 600;
       text-align: center;
       text-decoration: none;
@@ -461,10 +466,183 @@
         transparent 0%,
         rgba(30, 20, 15, 0.72) 100%);
     }
+
+    /* ══════════════════════════════════════
+       ROUND COUNTER
+    ══════════════════════════════════════ */
+    .round-counter {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.1;
+    }
+    .round-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .round-num {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.03em;
+    }
+
+    /* ══════════════════════════════════════
+       WINNER OVERLAY
+    ══════════════════════════════════════ */
+    .winner-overlay {
+      display: none;
+      position: fixed;
+      bottom: 13%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1500;
+      pointer-events: none;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .winner-overlay span {
+      font-size: clamp(2.6rem, 5.5vw, 5rem);
+      font-weight: 800;
+      color: #fff;
+      text-shadow:
+        0 0 50px rgba(255,140,120,0.95),
+        0 0 25px rgba(255,140,120,0.70),
+        0 4px 20px rgba(0,0,0,0.85),
+        0 2px 4px rgba(0,0,0,1.0);
+    }
+
+    /* ══════════════════════════════════════
+       BROADCAST MODE
+    ══════════════════════════════════════ */
+    .broadcast-controls {
+      display: none;
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 300;
+      gap: 12px;
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.80);
+      border-radius: 999px;
+      padding: 10px 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    }
+
+    body.broadcast-mode .panel-left,
+    body.broadcast-mode .panel-right { display: none !important; }
+    body.broadcast-mode .dashboard   { grid-template-columns: 1fr; }
+    body.broadcast-mode .controls    { display: none; }
+    body.broadcast-mode .float-nav   { display: none; }
+    body.broadcast-mode #broadcastControls { display: flex; }
+
+    body.broadcast-mode::before {
+      content: 'Round ' attr(data-round);
+      position: fixed;
+      top: 20px;
+      left: 28px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--accent);
+      opacity: 0.75;
+      z-index: 200;
+      letter-spacing: 0.05em;
+    }
+
+    /* ══════════════════════════════════════
+       MOBILE TABS
+    ══════════════════════════════════════ */
+    .mobile-tabs { display: none; }
+
+    @media (max-width: 767px) {
+      .mobile-tabs {
+        display: flex;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 200;
+        height: 48px;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(0,0,0,0.08);
+      }
+      .tab-btn {
+        flex: 1;
+        height: 100%;
+        border: none;
+        background: none;
+        font-family: inherit;
+        font-size: 0.90rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: color 0.15s, border-color 0.15s;
+      }
+      .tab-btn.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+
+      .dashboard {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr;
+        margin-top: 48px;
+        height: calc(100vh - 48px);
+      }
+
+      /* 모든 패널 기본 숨김 */
+      .panel-left, .center, .panel-right {
+        display: none;
+        grid-column: 1;
+        grid-row: 1;
+      }
+      /* JS가 .tab-active 부착 시 표시 */
+      .panel-left.tab-active,
+      .center.tab-active,
+      .panel-right.tab-active {
+        display: flex;
+      }
+
+      /* 컨트롤 바 모바일 조정 */
+      .controls {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 10px 12px;
+      }
+      .btn-raffle { flex: 1 1 auto; }
+
+      /* float-nav → 우하단 수평 */
+      .float-nav {
+        top: auto;
+        bottom: 16px;
+        transform: none;
+        flex-direction: row;
+        border-radius: 999px 0 0 999px;
+        border-right: none;
+        padding: 6px 8px;
+      }
+    }
   </style>
 </head>
 <body>
 <div id="cinemaOverlay"></div>
+<div id="winnerOverlay" class="winner-overlay"><span id="winnerOverlayName"></span></div>
+
+<!-- 모바일 탭 바 -->
+<div class="mobile-tabs" id="mobileTabs">
+  <button class="tab-btn" data-panel="left">입력</button>
+  <button class="tab-btn active" data-panel="center">추첨판</button>
+  <button class="tab-btn" data-panel="right">명단</button>
+</div>
+
 <div class="dashboard">
 
   <!-- ══ LEFT PANEL ══ -->
@@ -499,8 +677,13 @@
       <label class="skip-label">
         <input type="checkbox" id="skipCheck"> 스킵
       </label>
+      <div class="round-counter">
+        <span class="round-label">Round</span>
+        <span class="round-num" id="roundNum">1</span>
+      </div>
       <button id="raffleBtn" class="btn btn-primary btn-raffle">추첨 시작</button>
       <button id="confirmBtn" class="btn btn-success btn-raffle" style="display:none">결과 확정</button>
+      <button id="broadcastBtn" class="btn btn-secondary" title="UI 숨기기 (B)">UI 숨기기</button>
     </div>
   </main>
 
@@ -544,6 +727,13 @@
   <span class="float-nav-item current">추첨</span>
 </nav>
 
+<!-- 방송 모드 전용 플로팅 컨트롤 -->
+<div id="broadcastControls" class="broadcast-controls">
+  <button id="bc-raffle"  class="btn btn-primary btn-raffle">추첨 시작</button>
+  <button id="bc-confirm" class="btn btn-success  btn-raffle" style="display:none">결과 확정</button>
+  <button id="bc-exit"    class="btn btn-secondary">✕ 해제</button>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>
 'use strict';
@@ -558,6 +748,8 @@ const state = {
   selected:       null,     // { nickname, from: 'upper'|'lower' }
   pendingWinners: [],       // 애니메이션 후 확정 대기
   uiMode:         'idle',   // 'idle' | 'running' | 'confirming'
+  round:          1,        // 회차 카운터
+  broadcastMode:  false,    // UI 숨기기
 };
 
 const cardMap = new Map(); // nickname -> card DOM element
@@ -586,6 +778,7 @@ function saveState() {
     localStorage.setItem('kangHeeDay_participants', JSON.stringify(state.participants));
     localStorage.setItem('kangHeeDay_winners',      JSON.stringify(state.winners));
     localStorage.setItem('kangHeeDay_settings',     JSON.stringify(state.settings));
+    localStorage.setItem('kangHeeDay_round',        JSON.stringify(state.round));
   } catch { /* storage full — ignore */ }
 }
 
@@ -594,9 +787,11 @@ function loadState() {
     const p = localStorage.getItem('kangHeeDay_participants');
     const w = localStorage.getItem('kangHeeDay_winners');
     const s = localStorage.getItem('kangHeeDay_settings');
+    const r = localStorage.getItem('kangHeeDay_round');
     if (p) state.participants = JSON.parse(p);
     if (w) state.winners      = JSON.parse(w);
     if (s) state.settings     = { ...state.settings, ...JSON.parse(s) };
+    if (r) state.round        = JSON.parse(r);
   } catch { /* corrupt data — ignore */ }
 }
 
@@ -668,6 +863,7 @@ function renderCards(animateIn = false) {
       ease: 'back.out(2.0)',
     });
   }
+  updateRaffleButtonState();
 }
 
 // ══════════════════════════════════════════
@@ -710,6 +906,24 @@ function makeListItem(nickname, from) {
     state.selected = isSelected ? null : { nickname, from };
     renderLists();
   });
+
+  // 더블클릭: 클립보드 복사 (하단 당첨 목록에서 유용)
+  li.addEventListener('dblclick', async () => {
+    try {
+      await navigator.clipboard.writeText(nickname);
+    } catch {
+      const ta = document.createElement('textarea');
+      Object.assign(ta.style, { position: 'fixed', top: '-9999px' });
+      ta.value = nickname;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    li.style.background = 'rgba(93,206,168,0.28)';
+    setTimeout(() => { li.style.background = ''; }, 700);
+  });
+
   return li;
 }
 
@@ -753,6 +967,8 @@ function setUIMode(mode) {
   document.getElementById('resetAllBtn').disabled   = disableRight;
 
   if (idle) updateMoveButtons();
+  updateRaffleButtonState();
+  syncBroadcastControls();
 }
 
 // ══════════════════════════════════════════
@@ -816,6 +1032,9 @@ function createHeroClone(card) {
 }
 
 async function heroReveal(winnerCards) {
+  const overlayEl   = document.getElementById('winnerOverlay');
+  const overlayName = document.getElementById('winnerOverlayName');
+
   for (const card of winnerCards) {
     const { clone, rect } = createHeroClone(card);
     const vw = window.innerWidth;
@@ -832,9 +1051,18 @@ async function heroReveal(winnerCards) {
       duration: 0.38, ease: 'power3.out',
     });
 
-    // 뒤집기: 90°에서 잠시 멈춤 → 180° 완성
+    // 뒤집기: 90°에서 잠시 멈춤
     const inner = clone.querySelector('.card-inner');
     await tw(inner, { rotateY: 90, duration: 0.22, ease: 'power2.in' });
+
+    // 이름 오버레이 등장 (뒤집기 midpoint)
+    overlayName.textContent = card.dataset.nickname;
+    overlayEl.style.display = 'block';
+    gsap.fromTo(overlayEl,
+      { opacity: 0, y: 28, scale: 0.80 },
+      { opacity: 1, y: 0,  scale: 1.0, duration: 0.32, ease: 'back.out(2.2)' }
+    );
+
     await wait(80);
     await tw(inner, { rotateY: 180, duration: 0.30, ease: 'back.out(1.8)' });
 
@@ -843,7 +1071,12 @@ async function heroReveal(winnerCards) {
 
     await wait(520); // 감상 시간
 
-    // 원위치 복귀 + 페이드아웃
+    // 이름 오버레이 페이드아웃 + 원위치 복귀 동시에
+    gsap.to(overlayEl, {
+      opacity: 0, y: -12, duration: 0.22, ease: 'power2.in',
+      onComplete: () => { overlayEl.style.display = 'none'; },
+    });
+
     await tw(clone, {
       left: rect.left, top: rect.top,
       width: rect.width, height: rect.height,
@@ -855,7 +1088,6 @@ async function heroReveal(winnerCards) {
     // 원본 카드 앞면 전환
     gsap.set(card.querySelector('.card-inner'), { rotateY: 180 });
     card.classList.add('winner-glow');
-    // phase3에서 올린 scale 되돌리기
     gsap.set(card, { scale: 1 });
 
     await wait(150);
@@ -990,17 +1222,25 @@ function pickWinners(count) {
   return picked;
 }
 
+function flashInputError(inputEl) {
+  inputEl.style.borderColor = '#E74C3C';
+  inputEl.style.boxShadow   = '0 0 0 3px rgba(231,76,60,0.20)';
+  setTimeout(() => {
+    inputEl.style.borderColor = '';
+    inputEl.style.boxShadow   = '';
+  }, 2000);
+}
+
 async function startRaffle() {
-  const count = parseInt(document.getElementById('winnerCountInput').value, 10);
+  const countInput = document.getElementById('winnerCountInput');
+  const count = parseInt(countInput.value, 10);
 
   if (!count || count < 1) {
-    alert('당첨자 수를 1 이상으로 설정해주세요.'); return;
+    flashInputError(countInput); return;
   }
-  if (state.participants.length === 0) {
-    alert('참가자가 없습니다.'); return;
-  }
+  if (state.participants.length === 0) return;
   if (count > state.participants.length) {
-    alert(`당첨자 수(${count})가 참가자 수(${state.participants.length})보다 많습니다.`); return;
+    flashInputError(countInput); return;
   }
 
   const winnerNicks = pickWinners(count);
@@ -1020,6 +1260,7 @@ async function startRaffle() {
     setUIMode('confirming');
   } else {
     // 전체 애니메이션
+    switchMobileTab('center');
     setUIMode('running');
     await phase1Float(allCards);
     await phase2Shuffle(allCards);
@@ -1049,6 +1290,11 @@ async function confirmResults() {
   state.participants = state.participants.filter(n => !confirmed.includes(n));
   state.pendingWinners = [];
   state.selected = null;
+
+  // 회차 증가
+  state.round += 1;
+  document.getElementById('roundNum').textContent = state.round;
+  document.body.setAttribute('data-round', state.round);
 
   saveState();
   renderAll(true);
@@ -1083,6 +1329,15 @@ function addParticipants() {
   renderAll(added.length > 0);
 
   if (dupes.length > 0) highlightLower(dupes);
+
+  // 추가 피드백
+  if (added.length > 0) {
+    const btn  = document.getElementById('addBtn');
+    const orig = btn.textContent;
+    btn.textContent = `✓ ${added.length}명 추가됨`;
+    btn.disabled = true;
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1200);
+  }
 }
 
 function highlightLower(nicks) {
@@ -1133,6 +1388,9 @@ function resetAll() {
   state.winners        = [];
   state.selected       = null;
   state.pendingWinners = [];
+  state.round          = 1;
+  document.getElementById('roundNum').textContent = '1';
+  document.body.setAttribute('data-round', '1');
   saveState();
   renderAll(false);
   setUIMode('idle');
@@ -1155,6 +1413,60 @@ function checkImage(src, cssVar) {
   img.onload = () =>
     document.documentElement.style.setProperty(cssVar, `url("${src}")`);
   img.src = src;
+}
+
+// ══════════════════════════════════════════
+// BROADCAST MODE
+// ══════════════════════════════════════════
+function toggleBroadcastMode() {
+  state.broadcastMode = !state.broadcastMode;
+  document.body.classList.toggle('broadcast-mode', state.broadcastMode);
+  document.getElementById('broadcastBtn').textContent =
+    state.broadcastMode ? '✕ UI 숨기기' : 'UI 숨기기';
+  syncBroadcastControls();
+  // 패널 숨김 후 카드 그리드 너비 재계산
+  requestAnimationFrame(() => requestAnimationFrame(updateCardGridSize));
+}
+
+function syncBroadcastControls() {
+  const raffleBtn  = document.getElementById('raffleBtn');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const bcRaffle   = document.getElementById('bc-raffle');
+  const bcConfirm  = document.getElementById('bc-confirm');
+  bcRaffle.style.display  = raffleBtn.style.display  !== 'none' ? '' : 'none';
+  bcConfirm.style.display = confirmBtn.style.display !== 'none' ? '' : 'none';
+  bcRaffle.disabled  = raffleBtn.disabled;
+  bcConfirm.disabled = confirmBtn.disabled;
+}
+
+function updateRaffleButtonState() {
+  const empty = state.participants.length === 0;
+  const btn   = document.getElementById('raffleBtn');
+  btn.disabled = empty || state.uiMode !== 'idle';
+  btn.title    = empty ? '참가자를 먼저 추가해주세요' : '추첨 시작 (Space)';
+  syncBroadcastControls();
+}
+
+// ══════════════════════════════════════════
+// MOBILE TABS
+// ══════════════════════════════════════════
+function switchMobileTab(panel) {
+  if (window.innerWidth >= 768) return;
+  document.querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.panel === panel));
+  document.querySelector('.panel-left')
+    .classList.toggle('tab-active', panel === 'left');
+  document.querySelector('.center')
+    .classList.toggle('tab-active', panel === 'center');
+  document.querySelector('.panel-right')
+    .classList.toggle('tab-active', panel === 'right');
+  if (panel === 'center') updateCardGridSize();
+}
+
+function initTabs() {
+  if (window.innerWidth < 768) {
+    switchMobileTab('center');
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1197,6 +1509,31 @@ function bindEvents() {
   document.getElementById('resetAllBtn')
     .addEventListener('click', resetAll);
 
+  // ── UI 숨기기
+  document.getElementById('broadcastBtn').addEventListener('click', toggleBroadcastMode);
+  document.getElementById('bc-exit').addEventListener('click', toggleBroadcastMode);
+  document.getElementById('bc-raffle').addEventListener('click', startRaffle);
+  document.getElementById('bc-confirm').addEventListener('click', confirmResults);
+
+  // ── 모바일 탭
+  document.querySelectorAll('.tab-btn').forEach(btn =>
+    btn.addEventListener('click', () => switchMobileTab(btn.dataset.panel)));
+
+  // ── 키보드 단축키
+  document.addEventListener('keydown', e => {
+    const isTyping = document.activeElement.tagName === 'TEXTAREA'
+                  || document.activeElement.tagName === 'INPUT';
+    if (isTyping) return;
+
+    if (e.key === ' ') {
+      e.preventDefault();
+      if      (state.uiMode === 'idle' && state.participants.length > 0) startRaffle();
+      else if (state.uiMode === 'confirming') confirmResults();
+    }
+    if (e.key === 'b' || e.key === 'B') toggleBroadcastMode();
+    if (e.key === 'Escape' && state.broadcastMode) toggleBroadcastMode();
+  });
+
   window.addEventListener('resize', () => {
     if (state.participants.length > 0) updateCardGridSize();
   });
@@ -1210,11 +1547,18 @@ function init() {
   document.getElementById('winnerCountInput').value =
     state.settings.winnerCount || 1;
 
+  // 회차 초기화
+  document.getElementById('roundNum').textContent = state.round;
+  document.body.setAttribute('data-round', state.round);
+
   checkImage('card_b.webp', '--card-b-img');
   checkImage('card_f.webp', '--card-f-img');
 
   renderAll(false);
   bindEvents();
+
+  // 모바일 초기 탭 상태 (중앙=추첨판 기본)
+  initTabs();
 }
 
 init();
